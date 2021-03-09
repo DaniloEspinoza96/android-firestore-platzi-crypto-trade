@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import com.platzi.android.firestore.R
+import kotlinx.android.synthetic.main.activity_trader.*
 
 /**
  * @author Santiago Carrillo
@@ -20,6 +22,8 @@ class LoginActivity : AppCompatActivity() {
 
 
     private val TAG = "LoginActivity"
+    //with this we get access to the auth module from firebase
+    private var auth: FirebaseAuth = FirebaseAuth.getInstance()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +33,18 @@ class LoginActivity : AppCompatActivity() {
 
 
     fun onStartClicked(view: View) {
-        startMainActivity("Santiago")
+        auth.signInAnonymously()
+                .addOnCompleteListener{task ->
+                    if(task.isSuccessful){
+                        val username = usernameTextView.text.toString()
+                        println("El usuario es: $username")
+                        startMainActivity(username)
+                    }else{
+                        //with this we show user, that things went wrong
+                        showErrorMessage(view)
+                    }
+                }
+       // startMainActivity("Santiago")
 
     }
 
