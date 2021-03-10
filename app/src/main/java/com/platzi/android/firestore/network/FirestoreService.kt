@@ -9,6 +9,7 @@ const val CRYPTO_COLLECTION_NAME = "cryptos"
 const val USERS_COLLECTION_NAME = "users"
 
 class FirestoreService(val firebaseFirestore: FirebaseFirestore) {
+    //this function gets an instance when its called, its called from LoginActivity
     //this function will save a document
     fun setDocument(
         data: Any,
