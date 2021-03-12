@@ -7,6 +7,7 @@ class Crypto(
 {
 
     fun getDocumentId(): String{
+
         return name.toLowerCase()
     }
 }

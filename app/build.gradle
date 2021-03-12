@@ -17,6 +17,7 @@ android {
         versionName "1.0"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled = true
     }
     buildFeatures {
         viewBinding true
@@ -53,6 +54,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:18.0.2'
     implementation 'com.google.firebase:firebase-auth:20.0.3'
     implementation 'com.google.firebase:firebase-firestore:22.1.1'
-
-
 }
+
+
+apply plugin: 'com.google.gms.google-services'

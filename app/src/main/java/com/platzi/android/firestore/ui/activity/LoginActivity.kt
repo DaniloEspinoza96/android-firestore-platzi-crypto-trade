@@ -17,11 +17,6 @@ import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_trader.*
 import java.lang.Exception
 
-/**
- * @author Santiago Carrillo
- * github sancarbar
- * 1/29/19.
- */
 
 
 const val USERNAME_KEY = "username_key"
@@ -31,28 +26,48 @@ class LoginActivity : AppCompatActivity() {
 
     private val TAG = "LoginActivity"
 
+
     //with this we get access to the auth module from firebase
+
     private var auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     lateinit var firestoreService: FirestoreService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_login)//here we select the layout
         firestoreService = FirestoreService(FirebaseFirestore.getInstance()) //here we send the firestore instance to the
         //FirestoreService.kt
+
     }
 
 
     fun onStartClicked(view: View) {
         view.isEnabled = false
         auth.signInAnonymously()
+
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val username = username.text.toString()
-                        val user = User()//this is the user from model
-                        user.username = username
-                        saveUserAndStartMainActivity(user, view)
+                        firestoreService.findUserById(username, object : Callback<User> {
+                            override fun onSuccess(result: User?) {
+                                //this means, user hasnt created yet, so we must create it
+                                if (result == null){
+                                    val user = User()//this is the user from model
+                                    user.username = username
+                                    saveUserAndStartMainActivity(user, view)
+                                }else{//if user was already created, then we skip that step and just go to MainActivity
+                                    startMainActivity(username)
+                                }
+                            }
+                            override fun onFailed(exception: Exception) {
+                                showErrorMessage(view) //if its unable to read the database, then we just show the error in the view of the app
+                            }
+
+                        })
+
+
                     } else {
                         //with this we show user, that things went wrong
                         showErrorMessage(view)
