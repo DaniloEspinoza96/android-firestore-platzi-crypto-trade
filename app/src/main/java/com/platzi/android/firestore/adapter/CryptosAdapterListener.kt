@@ -2,12 +2,7 @@ package com.platzi.android.firestore.adapter
 
 import com.platzi.android.firestore.model.Crypto
 
-/**
- * @author Santiago Carrillo
- * 3/9/19.
- */
-
 interface CryptosAdapterListener{
-
-    fun onBuyCryptoClicked(crypto: Crypto)
+    //this interface is used to buy crypto coins, one by one
+ fun onBuyCryptoClicked(cryptos: Crypto)
 }
