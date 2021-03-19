@@ -28,7 +28,7 @@ class FirestoreService(val firebaseFirestore: FirebaseFirestore) {
             .addOnFailureListener { exception -> callback.onFailed(exception) }
     }
 
-    fun updateUser(user: User, callback: com.platzi.android.firestore.network.Callback<User>){
+    fun updateUser(user: User, callback: Callback<User>?){
         //will i have a collection for every user i have?
         //that i believe
         firebaseFirestore.collection(USERS_COLLECTION_NAME).document(user.username)
@@ -37,7 +37,7 @@ class FirestoreService(val firebaseFirestore: FirebaseFirestore) {
                 if(callback != null)callback.onSuccess(user)
                 }
             .addOnFailureListener { exception ->
-                callback.onFailed(exception)
+                callback?.onFailed(exception)
             }
             }
     fun updateCrypto(crypto: Crypto){

@@ -16,9 +16,10 @@ import com.platzi.android.firestore.model.Crypto
 import com.platzi.android.firestore.model.User
 import com.platzi.android.firestore.network.Callback
 import com.platzi.android.firestore.network.FirestoreService
-import com.platzi.android.firestore.network.RealtimeDataListener
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_trader.*
+import kotlinx.android.synthetic.main.activity_trader.infoPanel
+import kotlinx.android.synthetic.main.crypto_row.*
 import java.lang.Exception
 
 
@@ -31,12 +32,18 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterListener {
     private val cryptosAdapter: CryptosAdapter = CryptosAdapter(this) //here we have to implement the interface
     //(onBuyCry...) 6
 
+    //define a variable with username
+    private var username:String? = null
+    private var user: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_trader)
         //after we set the content view, we initialize the firestore service 4
         firestoreService = FirestoreService(FirebaseFirestore.getInstance())
+
+        username = intent.extras!![USERNAME_KEY]!!.toString()//we get this from last activity
+        usernameTextView.text = username
         //set a method to configure the Rv 2
         configureRecyclerView()
         //now we add another fun that will load the crypto data 7
@@ -51,10 +58,35 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterListener {
 
     private fun loadCryptos() {
         firestoreService.getCryptos(object: Callback<List<Crypto>>{
-            override fun onSuccess(result: List<Crypto>?) {
+            override fun onSuccess(cryptoList: List<Crypto>?) {
+                firestoreService.findUserById(username!!, object: Callback<User>{
+                    override fun onSuccess(result: User?) {
+                        user = result
+                        if (user!!.cryptosList == null){
+                            val userCryptoList = mutableListOf<Crypto>()
+                            for (crypto in cryptoList!!){
+                                val cryptoUser = Crypto()
+                                cryptoUser.name = crypto.name
+                                cryptoUser.available = crypto.available
+                                cryptoUser.imageUrl = crypto.imageUrl
+                                userCryptoList.add(cryptoUser)
+                            }
+                            user!!.cryptosList = userCryptoList
+                            firestoreService.updateUser(user!!, null)
+                        }
+                        loadUserCryptos()
+
+                    }
+
+                    override fun onFailed(exception: Exception) {
+                        showGeneralServerErrorMessage()
+                    }
+
+                })
+
                 //this will run the specific actions on the UI thread
                 this@TraderActivity.runOnUiThread {
-                    cryptosAdapter.cryptoList = result!!
+                    cryptosAdapter.cryptoList = cryptoList!!
                     cryptosAdapter.notifyDataSetChanged()
                 }
             }
@@ -67,12 +99,32 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterListener {
         })
     }
 
+    private fun loadUserCryptos() {
+        runOnUiThread{
+            if(user != null&& user!!.cryptosList != null){
+                infoPanel.removeAllViews()
+                for(crypto in user!!.cryptosList!!){
+                    addUserCryptoInfoRow(crypto)
+                }
+            }
+        }
+    }
+
+    private fun addUserCryptoInfoRow(crypto: Crypto) {
+        val view = LayoutInflater.from(this).inflate(R.layout.coin_info, infoPanel, false)
+        view.findViewById<TextView>(R.id.coinLabel).text = getString(R.string.coin_info, crypto.name, crypto.available.toString())
+        Picasso.get().load(crypto.imageUrl).into(view.findViewById<ImageView>(R.id.coinIcon))
+        infoPanel.addView(view)
+
+    }
+
     private fun configureRecyclerView() {
         recyclerView.setHasFixedSize(true)
         val layoutManager = LinearLayoutManager(this) //this refers to the activity
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = cryptosAdapter //this will use the cryptos adapter, and will wrap all those items with
         //the data from firebase
+
     }
 
 
